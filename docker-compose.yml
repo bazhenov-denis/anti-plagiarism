@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  db-storing:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: storing
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - db-storing-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  file-storing-service:
+    build: ./services/file-storing-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-storing:5432/storing
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+      SERVER_PORT: 8080
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db-storing
+
+  db-analysis:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: analysis
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - db-analysis-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  file-analysis-service:
+    build: ./services/file-analysis-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-analysis:5432/analysis
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+      SERVER_PORT: 8080
+    ports:
+      - "8082:8080"
+    depends_on:
+      - db-analysis
+
+  api-gateway:
+    build: ./services/api-gateway
+    environment:
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - file-storing-service
+      - file-analysis-service
+
+  frontend:
+    build: ./frontend/my-react-app
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api-gateway
+
+volumes:
+  db-storing-data:
+  db-analysis-data:

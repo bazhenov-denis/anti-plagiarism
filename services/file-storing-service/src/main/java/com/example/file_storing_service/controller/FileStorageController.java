@@ -1,5 +1,6 @@
 package com.example.file_storing_service.controller;
 
+import com.example.file_storing_service.controller.DTO.FileUploadResponse;
 import com.example.file_storing_service.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,13 +14,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/api/files")
-public class FileController {
+@RequestMapping("/files")
+public class FileStorageController {
 
   private final FileStorageService storageService;
 
   @Autowired
-  public FileController(FileStorageService storageService) {
+  public FileStorageController(FileStorageService storageService) {
     this.storageService = storageService;
   }
 
@@ -28,7 +29,7 @@ public class FileController {
     String savedFilename = storageService.store(file);
     // Собираем URL до файла, если нужно
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-        .path("/api/files/")
+        .path("/files/")
         .path(savedFilename)
         .toUriString();
     FileUploadResponse resp = new FileUploadResponse(

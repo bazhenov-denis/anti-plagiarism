@@ -1,4 +1,4 @@
-package com.example.file_storing_service.storage;
+package com.example.file_storing_service;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
