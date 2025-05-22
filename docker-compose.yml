@@ -59,6 +59,9 @@ services:
 
   frontend:
     build: ./frontend/my-react-app
+    volumes:
+      - ./frontend/my-react-app:/app
+      - /app/node_modules   
     command: npm run dev
     ports:
       - "5173:5173"

@@ -1,4 +1,3 @@
-# frontend/my-react-app/Dockerfile.dev
 FROM node:18-alpine
 
 WORKDIR /app

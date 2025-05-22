@@ -5,10 +5,10 @@ spring:
     gateway:
       routes:
         - id: file-storing-service
-          uri: http://file-storing-service:8081
+          uri: http://file-storing-service:8080
           predicates:
             - Path=/files/**
         - id: file-analysis-service
-          uri: http://file-analysis-service:8082
+          uri: http://file-analysis-service:8080
           predicates:
             - Path=/analysis/**

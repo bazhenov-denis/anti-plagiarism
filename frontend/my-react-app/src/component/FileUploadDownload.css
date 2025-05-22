@@ -1,0 +1,90 @@
+/* FileUploadDownload.css */
+
+.files {
+    background-color: #28a745;
+    padding: 1rem;
+    text-align: center;
+}
+
+.title {
+    color: #fff;
+    margin: 0;
+}
+
+.formdata {
+    margin: 2rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.upload-form {
+    border: 2px solid green;
+    padding: 1rem;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+}
+
+.upload-label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.file-input {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.upload-button {
+    background-color: #28a745;
+    color: #fff;
+    width: 100%;
+    font-weight: bold;
+    padding: 0.75rem;
+    border: none;
+    cursor: pointer;
+}
+
+.upload-button:hover {
+    opacity: 0.9;
+}
+
+.tabledata {
+    margin: 2rem 1rem;
+    overflow-x: auto;
+}
+
+.file-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.file-table th,
+.file-table td {
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.file-table th {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.download-button {
+    display: inline-block;
+    background-color: #28a745;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-size: 1.25rem;
+}
+
+.download-button:hover {
+    opacity: 0.9;
+}
