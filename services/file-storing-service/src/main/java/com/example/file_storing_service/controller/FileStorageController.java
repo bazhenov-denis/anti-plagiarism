@@ -1,12 +1,10 @@
 package com.example.file_storing_service.controller;
 
+import com.example.file_storing_service.controller.DTO.FileInfoDto;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import jakarta.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -31,77 +29,43 @@ import com.example.file_storing_service.service.FileStorageService;
 @RequestMapping("/files")
 public class FileStorageController {
 
-  private final FileStorageService storageService;
+  private final FileStorageService service;
 
   @Autowired
-  public FileStorageController(FileStorageService storageService) {
-    this.storageService = storageService;
+  public FileStorageController(FileStorageService service) {
+    this.service = service;
   }
 
-  @PostConstruct
-  public void init() {
-    storageService.init();
+  // 1) Загрузка
+  @PostMapping
+  public FileInfoDto upload(@RequestParam("file") MultipartFile file) {
+    return service.store(file);
   }
 
-  /**
-   * Список всех файлов (имён).
-   */
+  // 2) Список (id + оригинальное имя)
   @GetMapping
-  public ResponseEntity<List<String>> listFiles() throws IOException {
-    List<String> files = storageService.loadAll()
-        .map(path -> path.getFileName().toString())
-        .collect(Collectors.toList());
-    return ResponseEntity.ok(files);
+  public List<FileInfoDto> listFiles() {
+    return service.listAll();
   }
 
-  /**
-   * Загрузка файла.
-   */
-  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<Void> uploadFile(@RequestParam("file") MultipartFile file) {
-    String filename = storageService.store(file);
-    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path("/{filename}")
-        .buildAndExpand(filename)
-        .toUri();
-    return ResponseEntity.created(location).build();
-  }
-
-  /**
-   * Отдача файла по имени.
-   */
-  @GetMapping("load/{filename:.+}")
-  public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
-    Resource resource = storageService.loadAsResource(filename);
+  // 3) Скачивание
+  @GetMapping("/{id}")
+  public ResponseEntity<Resource> download(@PathVariable String id) {
+    Resource resource = service.downloadAsResource(id);
+    String filename = service.listAll().stream()
+        .filter(dto -> dto.getId().equals(id))
+        .map(FileInfoDto::getOriginalName)
+        .findFirst()
+        .orElse(id);
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
         .body(resource);
   }
 
-  /**
-   * Удаление конкретного файла.
-   */
-  @DeleteMapping("delete/{filename:.+}")
-  public ResponseEntity<Void> deleteFile(@PathVariable String filename) {
-    storageService.deleteById(filename);
+  // 4) Удаление
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@PathVariable String id) {
+    service.delete(id);
     return ResponseEntity.noContent().build();
-  }
-
-  /**
-   * Удаление всех файлов.
-   */
-  @DeleteMapping
-  public ResponseEntity<Void> deleteAllFiles() {
-    storageService.deleteAll();
-    return ResponseEntity.noContent().build();
-  }
-
-  /**
-   * Обработка ошибки: файл не найден.
-   */
-  @ExceptionHandler(StorageFileNotFoundException.class)
-  public ResponseEntity<String> handleNotFound(StorageFileNotFoundException ex) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-        .body(ex.getMessage());
   }
 }
