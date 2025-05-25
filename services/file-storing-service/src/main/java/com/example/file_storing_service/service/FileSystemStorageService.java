@@ -68,6 +68,7 @@ public class FileSystemStorageService implements FileStorageService {
         .path(fileId)
         .status(FileStatus.NEW)
         .build();
+    fileDataRepository.save(fileData);
     return new FileInfoDto(fileId, fileData.getOriginalName());
   }
 

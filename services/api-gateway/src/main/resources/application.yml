@@ -12,3 +12,17 @@ spring:
           uri: http://file-analysis-service:8080
           predicates:
             - Path=/analysis/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':              # ← все пути
+            allowedOrigins:     # домены фронта
+              - "http://localhost:5173"
+              - "https://front.prod.com"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
