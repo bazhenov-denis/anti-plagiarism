@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import '@fortawesome/fontawesome-free/css/all.min.css'
 import { useFiles } from './hooks/useFiles.ts';
 import FileUploadButton from "./component/FileUploadButton";
 import DuplicateAlert from './component/DuplicateAlert';
@@ -53,7 +54,7 @@ export default function App() {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <header className="h-16 bg-white shadow-sm flex items-center justify-between px-6">
-                <h1 className="text-2xl font-semibold">Anti-Plagiarism</h1>
+                <h1 className="text-2xl font-semibold">Антиплагиат ВШЭ</h1>
             </header>
 
             {/* Main */}
