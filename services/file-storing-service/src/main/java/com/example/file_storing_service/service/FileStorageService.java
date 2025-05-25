@@ -17,8 +17,8 @@ public interface FileStorageService {
 
   List<FileInfoDto> listAll();
 
-  Resource downloadAsResource(String id);
+  Resource downloadAsResource(Long id);
 
-  void delete(String id);
+  void delete(Long id);
 
 }

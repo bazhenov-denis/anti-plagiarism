@@ -19,3 +19,4 @@ public class AnalysisController {
     return analysisService.analyzeAndGetAll(id);
   }
 }
+

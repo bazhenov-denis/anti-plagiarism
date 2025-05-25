@@ -53,35 +53,39 @@ public class FileSystemStorageService implements FileStorageService {
   @Override
   @Transactional
   public FileInfoDto store(MultipartFile file) {
-    String fileId = UUID.randomUUID().toString();
+    // 1. Поднимаем метаданные, чтобы получить ID из БД
+    FileData fileData = FileData.builder()
+        .originalName(file.getOriginalFilename())
+        .status(FileStatus.NEW)
+        .build();
+    fileDataRepository.saveAndFlush(fileData);  // гарантированно есть id
+    String fileId = fileData.getId().toString();
 
+    // 2. Пишем файл
     try (InputStream in = file.getInputStream()) {
       storageAdapter.save(fileId, in);
     } catch (IOException e) {
-      log.error("Ошибка при сохранении файла в адаптер: {}", e.getMessage(), e);
       throw new RuntimeException("Не удалось сохранить файл", e);
     }
 
-    FileData fileData = FileData.builder()
-        .id(fileId)
-        .originalName(file.getOriginalFilename())
-        .path(fileId)
-        .status(FileStatus.NEW)
-        .build();
-    fileDataRepository.save(fileData);
+    // 3. Обновляем path (если нужен)
+    fileData.setPath(fileId);
+    // flush не обязателен: JPA сам синхронизирует в конце транзакции
+
     return new FileInfoDto(fileId, fileData.getOriginalName());
   }
+
 
   @Override
   @Transactional(readOnly = true)
   public List<FileInfoDto> listAll() {
     return fileDataRepository.findAll().stream()
-        .map(fd -> new FileInfoDto(fd.getId(), fd.getOriginalName()))
+        .map(fd -> new FileInfoDto(fd.getId().toString(), fd.getOriginalName()))
         .collect(Collectors.toList());
   }
 
   @Transactional(readOnly = true)
-  public Resource downloadAsResource(String id) {
+  public Resource downloadAsResource(Long id) {
     var meta = fileDataRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Файл не найден: " + id));
     try {
@@ -94,7 +98,7 @@ public class FileSystemStorageService implements FileStorageService {
   }
 
   @Transactional
-  public void delete(String id) {
+  public void delete(Long id) {
     var meta = fileDataRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Файл не найден: " + id));
     storageAdapter.delete(meta.getPath());
