@@ -28,3 +28,4 @@ export function downloadUrl(id: string): string {
     // <a href={downloadUrl(id)} download />
     return `${base.defaults.baseURL}/files/${id}`;
 }
+export default base;

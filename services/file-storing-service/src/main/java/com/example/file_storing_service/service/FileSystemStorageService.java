@@ -5,48 +5,38 @@ import com.example.file_storing_service.adapter.StorageAdapter;
 import com.example.file_storing_service.controller.DTO.FileInfoDto;
 import com.example.file_storing_service.model.FileData;
 import com.example.file_storing_service.model.FileStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.file_storing_service.FileStorageProperties;
-import com.example.file_storing_service.exception.StorageException;
-import com.example.file_storing_service.exception.StorageFileNotFoundException;
 
 @Service
 @Slf4j
 public class FileSystemStorageService implements FileStorageService {
 
-  private final Path rootLocation;
   private final FileDataRepository fileDataRepository;
   private final StorageAdapter storageAdapter;
+  private final RestClient analysisRestClient;   // ← внедряем RestClient
+
 
   @Autowired
-  public FileSystemStorageService(FileStorageProperties properties, FileDataRepository fileDataRepository, StorageAdapter storageAdapter) {
+  public FileSystemStorageService(FileDataRepository fileDataRepository, StorageAdapter storageAdapter,
+      RestClient analysisRestClient
+  ) {
     this.fileDataRepository = fileDataRepository;
-    this.rootLocation = Paths.get(properties.getLocation())
-        .toAbsolutePath()
-        .normalize();
     this.storageAdapter = storageAdapter;
+    this.analysisRestClient = analysisRestClient;
   }
 
 
@@ -70,11 +60,32 @@ public class FileSystemStorageService implements FileStorageService {
 
     // 3. Обновляем path (если нужен)
     fileData.setPath(fileId);
-    // flush не обязателен: JPA сам синхронизирует в конце транзакции
+    triggerAnalysis(fileData.getId());
 
     return new FileInfoDto(fileId, fileData.getOriginalName());
   }
 
+  @Async("analysisExecutor")
+  @Transactional          // каждая асинхронная задача — своя транзакция
+  public void triggerAnalysis(Long id) {
+
+    try {
+      analysisRestClient.post()
+          .uri("/{id}", id)
+          .retrieve()
+          .toBodilessEntity();               // ждём 2xx
+
+      // ← если дошли до сюда, вызов успешен
+      fileDataRepository.findById(id).ifPresent(file -> file.setStatus(FileStatus.INDEXED));
+      log.info("Файл {} успешно проиндексирован и помечен как INDEXED", id);
+
+    } catch (Exception ex) {
+      // 4xx/5xx, сетевые или другие ошибки
+      fileDataRepository.findById(id).ifPresent(file -> file.setStatus(FileStatus.FAILED));
+      log.error("Анализ файла {} закончился ошибкой: {}", id, ex.getMessage(), ex);
+    }
+    // @Transactional гарантирует commit или rollback в конце метода
+  }
 
   @Override
   @Transactional(readOnly = true)

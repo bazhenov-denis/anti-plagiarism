@@ -6,16 +6,21 @@ import DuplicateAlert from './component/DuplicateAlert';
 import FilesTable from './component/FilesTable/FilesTable';
 import WordCloudModal from './component/WordCloudModal';
 import AnalysisModal from "./component/AnalysisModal.tsx";
+import { useAnalysis } from './hooks/useAnalysis';
+
 
 export default function App() {
     const { list, upload, remove } = useFiles();
     const files = list.data ?? [];
+
+
 
     /* ==== состояние UI ==== */
     const [duplicate, setDuplicate] = useState<string | null>(null);
     const [analysisId, setAnalysisId] = useState<string | null>(null);
     const [cloudId, setCloudId] = useState<string | null>(null);
 
+    const { data: analysis, isLoading: loadingAnalysis } = useAnalysis(analysisId);
     /* ==== события ==== */
     const handleUpload = (fl: FileList) => {
         const file = fl[0];
@@ -81,7 +86,8 @@ export default function App() {
             {/* Модальные окна */}
             <AnalysisModal
                 file={files.find((f) => f.id === analysisId) ?? null}
-                loading={false /* TODO: подвяжите к запросу анализа */}
+                analysis={analysis ?? null}
+                loading={loadingAnalysis}
                 onClose={() => setAnalysisId(null)}
             />
 

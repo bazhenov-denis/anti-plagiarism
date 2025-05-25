@@ -1,16 +1,20 @@
 package com.example.file_analysis_service.Api;
 
-import com.example.file_analysis_service.config.FileStoringProperties;
+import com.example.file_analysis_service.config.PathFileStoringProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-@RequiredArgsConstructor
 public class FileStorageRestClient {
 
   private final RestTemplate restTemplate;
-  private final FileStoringProperties props;
+  private final PathFileStoringProperties props;
+
+  public FileStorageRestClient(RestTemplate restTemplate, PathFileStoringProperties props) {
+    this.restTemplate = restTemplate;
+    this.props = props;
+  }
 
   /**
    * Скачивает содержимое файла по ID.

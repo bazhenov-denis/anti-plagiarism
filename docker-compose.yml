@@ -46,6 +46,8 @@ services:
       - "8082:8080"
     depends_on:
       - db-analysis
+    volumes:
+      - ./wordclouds:/data/wordclouds
 
   api-gateway:
     build: ./services/api-gateway
