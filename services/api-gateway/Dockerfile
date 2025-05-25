@@ -1,11 +1,17 @@
-FROM eclipse-temurin:17-jdk-focal
- 
+# Используем Temurin 21 вместо 17
+FROM eclipse-temurin:21-jdk
+
 WORKDIR /app
- 
+
+# Берём Maven wrapper и описания зависимостей
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
-RUN ./mvnw dependency:go-offline
- 
+
+# Предзагружаем зависимости, чтобы кэшировать слой
+RUN ./mvnw -B dependency:go-offline
+
+# Копируем исходники проекта
 COPY src ./src
- 
-CMD ["./mvnw", "spring-boot:run"]
+
+# Запускаем Spring Boot
+CMD ["./mvnw", "-B", "spring-boot:run"]
