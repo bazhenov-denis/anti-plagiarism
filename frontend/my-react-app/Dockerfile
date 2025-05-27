@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# установим все зависимости (включая dev)
-COPY package.json ./
-RUN npm install
+# 1. копируем ТОЛЬКО package.json + lock, ставим deps
+COPY package.json package-lock.json ./
+RUN npm ci          # ставит ровно то, что описано в lock
 
-# монтируем исходники, чтобы Vite-сервер видел изменения
+# 2. копируем исходники (последние), но node_modules уже готовы
 COPY . .
 
 EXPOSE 5173

@@ -20,6 +20,11 @@ export default defineConfig({
         target: 'http://api-gateway:8080',
         changeOrigin: true,
         // rewrite: path => path.replace(/^\/download/, '/api/download')
+      },
+      '/analysis': {
+        target: 'http://api-gateway:8080',
+        changeOrigin: true,
+        // rewrite: path => path.replace(/^\/download/, '/api/download')
       }
     }
   }

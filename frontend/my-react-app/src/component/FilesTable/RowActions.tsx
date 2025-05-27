@@ -1,6 +1,5 @@
-
+// src/component/FilesTable/RowActions.tsx
 interface Props {
-    id: string;
     onAnalyze(): void;
     onWordCloud(): void;
     onDelete(): void;
@@ -16,6 +15,7 @@ export function RowActions({ onAnalyze, onWordCloud, onDelete }: Props) {
             >
                 <i className="fas fa-chart-bar text-blue-600" />
             </button>
+
             <button
                 className="w-8 h-8 bg-green-50 rounded-full"
                 onClick={onWordCloud}
@@ -23,6 +23,7 @@ export function RowActions({ onAnalyze, onWordCloud, onDelete }: Props) {
             >
                 <i className="fas fa-cloud text-green-600" />
             </button>
+
             <button
                 className="w-8 h-8 bg-red-50 rounded-full"
                 onClick={onDelete}

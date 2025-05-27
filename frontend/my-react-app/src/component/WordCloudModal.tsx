@@ -1,32 +1,34 @@
-// src/components/WordCloudModal.tsx
-import { useEffect } from 'react';
-import * as echarts from 'echarts';
 import type { FileInfo } from '../types/FileInfo';
 
 interface Props {
     file: FileInfo | null;
     loading: boolean;
+    src: string | null;
     onClose(): void;
-    data: { name: string; value: number }[];
 }
-export default function WordCloudModal({ file, loading, data }: Props) {
-    useEffect(() => {
-        if (!loading && file) {
-            const dom = document.getElementById('wordcloud-chart');
-            if (dom) {
-                echarts.dispose(dom); // очищаем старый экземпляр
-                const chart = echarts.init(dom);
-                chart.setOption({
-                    series: [{ type: 'wordCloud', data }],
-                });
-            }
-        }
-    }, [loading, file, data]);
 
+export default function WordCloudModal({ file, loading, src, onClose }: Props) {
     if (!file) return null;
+
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            {/* аналогично контент */}
+            <div className="relative bg-white rounded-lg p-4 max-w-[80vw] max-h-[80vh]">
+                <button
+                    className="absolute top-2 right-2 text-xl"
+                    onClick={onClose}
+                >
+                    ✕
+                </button>
+                {loading ? (
+                    <p className="text-center mt-20">Загрузка…</p>
+                ) : (
+                    <img
+                        src={src ?? ''}
+                        alt="Word cloud"
+                        className="w-full h-full object-contain"
+                    />
+                )}
+            </div>
         </div>
     );
 }

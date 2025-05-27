@@ -1,32 +1,37 @@
-import { useState } from 'react';
-import '@fortawesome/fontawesome-free/css/all.min.css'
-import { useFiles } from './hooks/useFiles.ts';
-import FileUploadButton from "./component/FileUploadButton";
+import { useEffect, useState } from 'react';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
+import { useFiles } from './hooks/useFiles';
+import { useAnalysis } from './hooks/useAnalysis';
+import { useWordCloudPng } from './hooks/useWordCloud';
+
+import FileUploadButton from './component/FileUploadButton';
 import DuplicateAlert from './component/DuplicateAlert';
 import FilesTable from './component/FilesTable/FilesTable';
+import AnalysisModal from './component/AnalysisModal';
 import WordCloudModal from './component/WordCloudModal';
-import AnalysisModal from "./component/AnalysisModal.tsx";
-import { useAnalysis } from './hooks/useAnalysis';
-
 
 export default function App() {
     const { list, upload, remove } = useFiles();
     const files = list.data ?? [];
 
-
-
-    /* ==== состояние UI ==== */
     const [duplicate, setDuplicate] = useState<string | null>(null);
     const [analysisId, setAnalysisId] = useState<string | null>(null);
     const [cloudId, setCloudId] = useState<string | null>(null);
 
     const { data: analysis, isLoading: loadingAnalysis } = useAnalysis(analysisId);
-    /* ==== события ==== */
+    const { src: cloudSrc, loading: loadingCloud, load: loadCloud } = useWordCloudPng();
+
+    // При смене cloudId загружаем PNG
+    useEffect(() => {
+        if (cloudId) {
+            loadCloud(cloudId);
+        }
+    }, [cloudId, loadCloud]);
+
     const handleUpload = (fl: FileList) => {
         const file = fl[0];
         if (!file) return;
-
-        // проверяем дубликат по имени
         if (files.some((f) => f.originalName === file.name)) {
             setDuplicate(file.name);
         } else {
@@ -38,7 +43,7 @@ export default function App() {
         if (!duplicate) return;
         const inputEl = document.querySelector('input[type=file]') as HTMLInputElement | null;
         const file = inputEl?.files?.[0];
-        if (file) upload.mutate(file); // сервер перезапишет
+        if (file) upload.mutate(file);
         setDuplicate(null);
     };
 
@@ -48,21 +53,16 @@ export default function App() {
         const file = inputEl?.files?.[0];
         if (!file) return;
         const ext = file.name.substring(file.name.lastIndexOf('.'));
-        const renamed = new File([file], `${file.name.replace(ext, '')} (1)${ext}`, {
-            type: file.type,
-        });
+        const renamed = new File([file], `${file.name.replace(ext, '')} (1)${ext}`, { type: file.type });
         upload.mutate(renamed);
         setDuplicate(null);
     };
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
             <header className="h-16 bg-white shadow-sm flex items-center justify-between px-6">
                 <h1 className="text-2xl font-semibold">Антиплагиат ВШЭ</h1>
             </header>
-
-            {/* Main */}
             <main className="container mx-auto px-6 py-8">
                 <div className="flex items-center mb-6">
                     <FileUploadButton onUpload={handleUpload} />
@@ -83,7 +83,6 @@ export default function App() {
                 />
             </main>
 
-            {/* Модальные окна */}
             <AnalysisModal
                 file={files.find((f) => f.id === analysisId) ?? null}
                 analysis={analysis ?? null}
@@ -93,9 +92,9 @@ export default function App() {
 
             <WordCloudModal
                 file={files.find((f) => f.id === cloudId) ?? null}
-                loading={false /* TODO */}
+                loading={loadingCloud}
+                src={cloudSrc}
                 onClose={() => setCloudId(null)}
-                data={[]} // результат API /analysis/{id}/wordcloud
             />
         </div>
     );
