@@ -10,6 +10,7 @@ import DuplicateAlert from './component/DuplicateAlert';
 import FilesTable from './component/FilesTable/FilesTable';
 import AnalysisModal from './component/AnalysisModal';
 import WordCloudModal from './component/WordCloudModal';
+import {downloadFile} from "./api/files.ts";
 
 export default function App() {
     const { list, upload, remove } = useFiles();
@@ -18,6 +19,12 @@ export default function App() {
     const [duplicate, setDuplicate] = useState<string | null>(null);
     const [analysisId, setAnalysisId] = useState<string | null>(null);
     const [cloudId, setCloudId] = useState<string | null>(null);
+
+
+    const handleDownload = (id: string) => {
+        const file = files.find((f) => f.id === id);
+        if (file) downloadFile(id, file.originalName);
+    };
 
     const { data: analysis, isLoading: loadingAnalysis } = useAnalysis(analysisId);
     const { src: cloudSrc, loading: loadingCloud, load: loadCloud } = useWordCloudPng();
@@ -80,6 +87,7 @@ export default function App() {
                     onAnalyze={(id) => setAnalysisId(id)}
                     onWordCloud={(id) => setCloudId(id)}
                     onDelete={(id) => remove.mutate(id)}
+                    onDownload={handleDownload}
                 />
             </main>
 

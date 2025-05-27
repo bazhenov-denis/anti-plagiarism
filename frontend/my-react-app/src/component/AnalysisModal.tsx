@@ -1,5 +1,5 @@
-import type { FileInfo } from '../types/FileInfo';
 import type { AnalysisResult } from '../api/analysis';
+import type { FileInfo } from '../types/FileInfo';
 
 interface Props {
     file: FileInfo | null;
@@ -15,79 +15,61 @@ export default function AnalysisModal({ file, analysis, loading, onClose }: Prop
     const sim   = analysis?.similarity ?? [];
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl w-4/5 max-w-4xl max-h-[90vh] overflow-auto relative">
-                {/* close btn */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-                >
-                    <i className="fas fa-times" />
-                </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="relative bg-white rounded-lg p-6 w-[90vw] max-w-3xl">
+                <button className="absolute top-2 right-2 text-xl" onClick={onClose}>✕</button>
 
-                {/* title */}
-                <h2 className="text-xl font-semibold px-8 pt-8">{file.originalName}</h2>
+                <h2 className="text-xl font-semibold mb-4">Анализ файла «{file.originalName}»</h2>
 
-                {/* body */}
-                {loading && (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-                        <p className="mt-4 text-gray-600">Анализируем…</p>
-                    </div>
-                )}
+                {loading ? (
+                    <p className="text-center py-20">Загрузка…</p>
+                ) : (
+                    <>
+                        {stats && (
+                            <div className="grid grid-cols-3 gap-4 mb-6 text-center">
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <p className="text-sm text-gray-500">Символов</p>
+                                    <p className="text-2xl font-bold">{stats.chars}</p>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <p className="text-sm text-gray-500">Слов</p>
+                                    <p className="text-2xl font-bold">{stats.words}</p>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <p className="text-sm text-gray-500">Параграфов</p>
+                                    <p className="text-2xl font-bold">{stats.paragraphs}</p>
+                                </div>
+                            </div>
+                        )}
 
-                {!loading && analysis && (
-                    <div className="p-8 space-y-6">
-                        {/* --- статистика --- */}
-                        <div className="grid grid-cols-3 gap-4 text-center">
-                            <Stat label="Слова" value={stats?.words} />
-                            <Stat label="Абзацы" value={stats?.paragraphs} />
-                            <Stat label="Символы" value={stats?.chars} />
-                        </div>
-
-                        {/* --- таблица похожих --- */}
-                        <div>
-                            <h3 className="text-lg font-medium mb-2">Похожие документы</h3>
-                            {sim.length === 0 ? (
-                                <p className="text-gray-500">Совпадений не найдено.</p>
-                            ) : (
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                        <h3 className="font-medium mb-2">Похожие файлы</h3>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-gray-500">ID файла</th>
+                                    <th className="px-4 py-2 text-right text-gray-500">Score</th>
+                                </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                {sim.length === 0 ? (
                                     <tr>
-                                        <th className="px-4 py-2 text-left text-xs text-gray-500">ID</th>
-                                        <th className="px-4 py-2 text-right text-xs text-gray-500">Совпадение, %</th>
+                                        <td colSpan={2} className="px-4 py-6 text-center text-gray-500">Нет похожих файлов</td>
                                     </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                    {sim.map((s) => (
+                                ) : (
+                                    sim.map((s) => (
                                         <tr key={s.fileId}>
                                             <td className="px-4 py-2">{s.fileId}</td>
-                                            <td className="px-4 py-2 text-right">
-                                                {(s.score * 100).toFixed(1)}
-                                            </td>
+                                            <td className="px-4 py-2 text-right">{s.score.toFixed(2)}</td>
                                         </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            )}
+                                    ))
+                                )}
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                )}
-
-                {!loading && !analysis && (
-                    <p className="p-8 text-red-600">Не удалось получить результат анализа.</p>
+                    </>
                 )}
             </div>
-        </div>
-    );
-}
-
-/* маленький подкомпонент карточки статистики */
-function Stat({ label, value }: { label: string; value?: number }) {
-    return (
-        <div className="bg-gray-100 rounded-lg py-4">
-            <div className="text-2xl font-bold">{value ?? '—'}</div>
-            <div className="text-xs text-gray-500">{label}</div>
         </div>
     );
 }

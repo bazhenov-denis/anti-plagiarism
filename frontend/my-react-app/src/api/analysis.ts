@@ -5,7 +5,7 @@ export interface FileStats { words: number; paragraphs: number; chars: number; }
 export interface AnalysisResult { stats: FileStats; similarity: Similarity[]; }
 
 export async function getAnalysis(id: string): Promise<AnalysisResult> {
-    const res = await base.get<AnalysisResult>(`/analysis/${id}`);
+    const res = await base.post<AnalysisResult>(`/analysis/${id}`);
     return res.data;
 }
 

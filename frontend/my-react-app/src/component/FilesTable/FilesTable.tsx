@@ -7,6 +7,7 @@ interface Props {
     onAnalyze(id: string): void;
     onWordCloud(id: string): void;
     onDelete(id: string): void;
+    onDownload(id: string): void;
 }
 
 export default function FilesTable({
@@ -14,6 +15,7 @@ export default function FilesTable({
                                        onAnalyze,
                                        onWordCloud,
                                        onDelete,
+                                       onDownload
                                    }: Props) {
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -37,6 +39,7 @@ export default function FilesTable({
                             <RowActions
                                 onAnalyze={() => onAnalyze(f.id)}
                                 onWordCloud={() => onWordCloud(f.id)}
+                                onDownload={() => onDownload(f.id)}
                                 onDelete={() => onDelete(f.id)}
                             />
                         </td>
