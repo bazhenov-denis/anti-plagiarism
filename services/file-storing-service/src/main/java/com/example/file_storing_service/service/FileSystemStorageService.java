@@ -3,8 +3,10 @@ package com.example.file_storing_service.service;
 import com.example.file_storing_service.Repository.FileDataRepository;
 import com.example.file_storing_service.adapter.StorageAdapter;
 import com.example.file_storing_service.controller.DTO.FileInfoDto;
+import com.example.file_storing_service.exception.StorageFileNotFoundException;
 import com.example.file_storing_service.model.FileData;
 import com.example.file_storing_service.model.FileStatus;
+import org.apache.tika.Tika;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,30 +41,47 @@ public class FileSystemStorageService implements FileStorageService {
     this.analysisRestClient = analysisRestClient;
   }
 
+  @Transactional(readOnly = true)
+  public String getContentType(Long id) {
+    return fileDataRepository.findById(id)
+        .map(FileData::getContentType)
+        .orElse("application/octet-stream");
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public FileData getMeta(Long id) {
+    return fileDataRepository.findById(id)
+        .orElseThrow(() ->
+            new StorageFileNotFoundException("Файл " + id + " не найден"));
+  }
 
   @Override
   @Transactional
-  public FileInfoDto store(MultipartFile file) {
-    // 1. Поднимаем метаданные, чтобы получить ID из БД
-    FileData fileData = FileData.builder()
+  public FileInfoDto store(MultipartFile file) throws IOException {
+
+    // (а) определяем MIME + charset
+    String detected = new Tika().detect(file.getInputStream());          // «text/plain; charset=UTF-16LE»
+
+    // (б) пишем метаданные
+    FileData meta = FileData.builder()
         .originalName(file.getOriginalFilename())
+        .contentType(detected)
         .status(FileStatus.NEW)
         .build();
-    fileDataRepository.saveAndFlush(fileData);  // гарантированно есть id
-    String fileId = fileData.getId().toString();
+    fileDataRepository.saveAndFlush(meta);
 
-    // 2. Пишем файл
+    String storageKey = meta.getId().toString();
+
+    // (в) сам файл
     try (InputStream in = file.getInputStream()) {
-      storageAdapter.save(fileId, in);
-    } catch (IOException e) {
-      throw new RuntimeException("Не удалось сохранить файл", e);
+      storageAdapter.save(storageKey, in);
     }
 
-    // 3. Обновляем path (если нужен)
-    fileData.setPath(fileId);
-    triggerAnalysis(fileData.getId());
+    meta.setPath(storageKey);
 
-    return new FileInfoDto(fileId, fileData.getOriginalName());
+    triggerAnalysis(meta.getId());
+    return new FileInfoDto(meta.getId().toString(), meta.getOriginalName());
   }
 
   @Async("analysisExecutor")

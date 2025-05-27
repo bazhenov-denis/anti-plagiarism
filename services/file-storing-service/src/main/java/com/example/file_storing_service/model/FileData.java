@@ -2,6 +2,8 @@ package com.example.file_storing_service.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,10 +22,14 @@ public class FileData {
   @GeneratedValue(strategy = GenerationType.IDENTITY) // или SEQUENCE
   private Long id;
 
-  String originalName;
+  private String originalName;
 
-  String path;
+  private String path;
 
-  Enum<FileStatus> status;
+  @Column(name = "content_type")
+  private String contentType;
+
+  @Enumerated(EnumType.STRING)
+  private FileStatus status;
 
 }
